@@ -13,7 +13,7 @@ declare -A debianSuite=(
 	[9.3]='jessie'
 	[9.4]='jessie'
 	[9.5]='jessie'
-	[9.6]='jessie'
+	[9.6]='stretch'
 	[10]='stretch'
 )
 declare -A alpineVersion=(
@@ -43,6 +43,8 @@ for version in "${versions[@]}"; do
 
 	versionList="$(echo "${suitePackageList["$suite"]}"; curl -fsSL "${packagesBase}/${suite}-pgdg/${version}/binary-amd64/Packages.bz2" | bunzip2)"
 	fullVersion="$(echo "$versionList" | awk -F ': ' '$1 == "Package" { pkg = $2 } $1 == "Version" && pkg == "postgresql-'"$version"'" { print $2; exit }' || true)"
+	#skytoolsFullVersion="$(echo "$versionList" | awk -F ': ' '$1 == "Package" { pkg = $2 } $1 == "Version" && pkg == "postgresql-'"$version"'-pgq3" { print $2; exit }' || true)"
+	skytoolsFullVersion="3.2.6-5+b1"
 	majorVersion="${version%%.*}"
 
 	(
@@ -50,6 +52,7 @@ for version in "${versions[@]}"; do
 		cp docker-entrypoint.sh "$version/"
 		sed -e 's/%%PG_MAJOR%%/'"$version"'/g;' \
 			-e 's/%%PG_VERSION%%/'"$fullVersion"'/g' \
+			-e 's/%%SKYTOOLS_VERSION%%/'"$skytoolsFullVersion"'/g' \
 			-e 's/%%DEBIAN_SUITE%%/'"$suite"'/g' \
 			-e 's/%%ARCH_LIST%%/'"${suiteArches["$suite"]}"'/g' \
 			Dockerfile-debian.template > "$version/Dockerfile"

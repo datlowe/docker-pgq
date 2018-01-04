@@ -1,5 +1,5 @@
 # vim:set ft=dockerfile:
-FROM debian:jessie
+FROM debian:stretch
 
 RUN set -ex; \
 	if ! command -v gpg > /dev/null; then \
@@ -13,6 +13,7 @@ RUN set -ex; \
 
 # explicitly set user/group IDs
 RUN groupadd -r postgres --gid=999 && useradd -r -g postgres --uid=999 postgres
+RUN mkdir /home/postgres && chown -R postgres /home/postgres
 
 # grab gosu for easy step-down from root
 ENV GOSU_VERSION 1.10
@@ -47,7 +48,8 @@ RUN set -ex; \
 	apt-key list
 
 ENV PG_MAJOR 9.6
-ENV PG_VERSION 9.6.6-1.pgdg80+1
+ENV PG_VERSION 9.6.6-1.pgdg90+1
+ENV SKYTOOLS_VERSION 3.2.6-5+b1
 
 RUN set -ex; \
 	\
@@ -55,13 +57,13 @@ RUN set -ex; \
 	case "$dpkgArch" in \
 		amd64|i386|ppc64el) \
 # arches officialy built by upstream
-			echo "deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main $PG_MAJOR" > /etc/apt/sources.list.d/pgdg.list; \
+			echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main $PG_MAJOR" > /etc/apt/sources.list.d/pgdg.list; \
 			apt-get update; \
 			;; \
 		*) \
 # we're on an architecture upstream doesn't officially build for
 # let's build binaries from their published source packages
-			echo "deb-src http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main $PG_MAJOR" > /etc/apt/sources.list.d/pgdg.list; \
+			echo "deb-src http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main $PG_MAJOR" > /etc/apt/sources.list.d/pgdg.list; \
 			\
 			tempDir="$(mktemp -d)"; \
 			cd "$tempDir"; \
@@ -104,6 +106,8 @@ RUN set -ex; \
 	apt-get install -y \
 		"postgresql-$PG_MAJOR=$PG_VERSION" \
 		"postgresql-contrib-$PG_MAJOR=$PG_VERSION" \
+		skytools3-ticker=$SKYTOOLS_VERSION \
+		postgresql-$PG_MAJOR-pgq3=$SKYTOOLS_VERSION \
 	; \
 	\
 	rm -rf /var/lib/apt/lists/*; \

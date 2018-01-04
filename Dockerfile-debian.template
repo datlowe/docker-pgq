@@ -13,6 +13,7 @@ RUN set -ex; \
 
 # explicitly set user/group IDs
 RUN groupadd -r postgres --gid=999 && useradd -r -g postgres --uid=999 postgres
+RUN mkdir /home/postgres && chown -R postgres /home/postgres
 
 # grab gosu for easy step-down from root
 ENV GOSU_VERSION 1.10
@@ -48,6 +49,7 @@ RUN set -ex; \
 
 ENV PG_MAJOR %%PG_MAJOR%%
 ENV PG_VERSION %%PG_VERSION%%
+ENV SKYTOOLS_VERSION %%SKYTOOLS_VERSION%%
 
 RUN set -ex; \
 	\
@@ -104,6 +106,8 @@ RUN set -ex; \
 	apt-get install -y \
 		"postgresql-$PG_MAJOR=$PG_VERSION" \
 		"postgresql-contrib-$PG_MAJOR=$PG_VERSION" \
+		skytools3-ticker=$SKYTOOLS_VERSION \
+		postgresql-$PG_MAJOR-pgq3=$SKYTOOLS_VERSION \
 	; \
 	\
 	rm -rf /var/lib/apt/lists/*; \

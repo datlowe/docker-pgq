@@ -133,6 +133,9 @@ if [ "$1" = 'postgres' ]; then
 			echo
 		done
 
+		echo "${psql[@]}"
+		"${psql[@]}" < /usr/share/postgresql/$PG_MAJOR/contrib/pgq.sql
+
 		PGUSER="${PGUSER:-postgres}" \
 		pg_ctl -D "$PGDATA" -m fast -w stop
 
@@ -140,6 +143,12 @@ if [ "$1" = 'postgres' ]; then
 		echo 'PostgreSQL init process complete; ready for start up.'
 		echo
 	fi
+
+	pgqd --ini > /home/postgres/ticker.ini
+	mkdir -p /home/postgres/log
+	mkdir -p /home/postgres/pid
+	pgqd /home/postgres/ticker.ini -v -d
+
 fi
 
 exec "$@"
